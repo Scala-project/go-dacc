@@ -1,11 +1,6 @@
 - name: Init
   hosts: prodserver
-  # IMPORTANT!: environment ensure the shell style module work good, such as shell,command,make
-  environment:
-    PATH: /usr/local/go/bin:{{ ansible_env.PATH }}
   remote_user: root
-  vars_files:
-    - env_vars/prod.yml
   roles:
     - init
     
