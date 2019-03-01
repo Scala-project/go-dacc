@@ -6,7 +6,7 @@ After=syslog.target network.target
 User=root
 Group=root
 Type=simple
-ExecStart=/usr/bin/gdacc --datadir /data --ipcdisable --rpc --rpcaddr "0.0.0.0" --rpcapi="admin,db,eth,miner,net,personal,web3" --pprof --pprofaddr 0.0.0.0
+ExecStart=/opt/gdacc/bin/gdacc --datadir /data --ipcdisable --rpc --rpcaddr "0.0.0.0" --rpcapi="admin,db,eth,miner,net,personal,web3" --pprof --pprofaddr 0.0.0.0
 KillMode=process
 KillSignal=SIGINT
 TimeoutStopSec=90

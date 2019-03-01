@@ -2,14 +2,7 @@
 #copy config file: upstart genesis gdacc
 #init chain
 #get enode list
-- name: Update git repo
-  git:
-    repo: "{{ git_repo }}"
-    dest: "{{ git_dest }}"
-    update: yes
-    track_submodules: yes
-    accept_hostkey: yes
-    version: "{{ git_branch }}"
+
 
 - name: Rsync unit files
   synchronize: src={{git_dest}}/deploy_gdacc/config/gdacc.service dest=/lib/systemd/system/gdacc.service
@@ -18,13 +11,6 @@
 - name: Rsync genesis files
   synchronize: src={{git_dest}}/deploy_gdacc/config/genesis.json dest=/opt/gdacc/genesis.json
   delegate_to: dev
-
-- name: Build gdacc
-  environment:
-    PATH: /usr/local/go/bin:{{ ansible_env.PATH }}
-  shell: make gdacc 
-  args:
-    chdir: "{{ git_dest }}"
 
 - name: Rsync gdacc files
   synchronize: src={{git_dest}}/build/bin/gdacc dest=/opt/gdacc/bin

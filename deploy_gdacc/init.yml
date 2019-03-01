@@ -1,4 +1,11 @@
-- name: Init
+
+- name: Build
+  hosts: devserver
+  remote_user: root
+  roles:
+    - build
+
+- name: Rsync
   hosts: prodserver
   remote_user: root
   roles:
