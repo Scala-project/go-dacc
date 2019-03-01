@@ -20,7 +20,10 @@
 #   delegate_to: dev
 
 - name: Build gdacc
-  shell: echo "Hello World"
+  # IMPORTANT!: environment ensure the shell style module work good, such as shell,command,make
+  environment:
+    PATH: /usr/local/go/bin:{{ ansible_env.PATH }}
+  shell: make gdacc 
   args:
     chdir: "{{ git_dest }}"
   #make:
