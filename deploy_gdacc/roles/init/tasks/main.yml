@@ -17,7 +17,7 @@
   delegate_to: dev
 
 - name: Init chain data
-  command: "{{bin_dir}}"/gdacc --datadir "{{ datadir }}" init "{{ genesis_path }}"  
+  command: /opt/gdacc/bin/gdacc --datadir "{{ datadir }}" init "{{ genesis_path }}"  
 
 - name: Stop gdacc service
   systemd:
