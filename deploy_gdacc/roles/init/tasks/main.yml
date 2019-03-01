@@ -11,35 +11,24 @@
     accept_hostkey: yes
     version: "{{ git_branch }}"
 
-# - name: Rsync unit files
-#   synchronize: src={{git_dest}}/deploy_gdacc/config/gdacc.service dest=/lib/systemd/system/gdacc.service
-#   delegate_to: dev
+- name: Rsync unit files
+  synchronize: src={{git_dest}}/deploy_gdacc/config/gdacc.service dest=/lib/systemd/system/gdacc.service
+  delegate_to: dev
 
-# - name: Rsync genesis files
-#   synchronize: src={{git_dest}}/deploy_gdacc/config/genesis.json dest=/data/genesis.json
-#   delegate_to: dev
+- name: Rsync genesis files
+  synchronize: src={{git_dest}}/deploy_gdacc/config/genesis.json dest=/opt/gdacc/genesis.json
+  delegate_to: dev
 
 - name: Build gdacc
-  # IMPORTANT!: environment ensure the shell style module work good, such as shell,command,make
   environment:
     PATH: /usr/local/go/bin:{{ ansible_env.PATH }}
   shell: make gdacc 
   args:
     chdir: "{{ git_dest }}"
-  #make:
-  #  chdir: "{{ git_dest }}"
-  #  target: gdacc 
 
-#  - name: Build gdacc
-#   hosts: buildserver
-#   # IMPORTANT!: environment ensure the shell style module work good, such as shell,command,make
-#   environment:
-#     PATH: /usr/local/go/bin:{{ ansible_env.PATH }}
-#   remote_user: root
-#   vars_files:
-#     - env_vars/prod.yml
-#   roles:
-#     - build
+- name: Rsync gdacc files
+  synchronize: src={{git_dest}}/build/bin/gdacc dest=/opt/gdacc/bin
+  delegate_to: dev
 
 # - name: Fetch gdacc executable
 #   hosts: buildserver
