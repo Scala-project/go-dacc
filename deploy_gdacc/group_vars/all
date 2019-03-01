@@ -8,6 +8,7 @@ ssh_port: 22
 rpc_port: 8787
 genesis_path: /opt/gdacc/genesis.json
 datadir: /opt/gdacc/data
+bindir: /opt/gdacc/bin
 
 # git config
 git_repo: https://github.com/daccproject/go-dacc.git

@@ -1,0 +1,15 @@
+- name: Update git repo
+  git:
+    repo: "{{ git_repo }}"
+    dest: "{{ git_dest }}"
+    update: yes
+    track_submodules: yes
+    accept_hostkey: yes
+    version: "{{ git_branch }}"
+
+- name: Build gdacc
+  environment:
+    PATH: /usr/local/go/bin:{{ ansible_env.PATH }}
+  shell: make gdacc 
+  args:
+    chdir: "{{ git_dest }}"    
