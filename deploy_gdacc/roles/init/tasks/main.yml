@@ -19,6 +19,11 @@
   synchronize: src={{git_dest}}/deploy_gdacc/config/genesis.json dest=/data/genesis.json
   delegate_to: dev
 
+- name: Build gdacc
+  make:
+    chdir: "{{ git_dest }}"
+    target: gdacc 
+
 #  - name: Build gdacc
 #   hosts: buildserver
 #   # IMPORTANT!: environment ensure the shell style module work good, such as shell,command,make
