@@ -20,7 +20,7 @@
 #   delegate_to: dev
 
 - name: Build gdacc
-  shell: make gdacc
+  shell: echo "Hello World"
   args:
     chdir: "{{ git_dest }}"
   #make:
