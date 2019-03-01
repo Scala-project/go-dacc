@@ -11,9 +11,9 @@
     accept_hostkey: yes
     version: "{{ git_branch }}"
 
-# - name: Rsync unit files
-#   synchronize: src={{git_dest}}/deploy_gdacc/config/gdacc.service dest=/lib/systemd/system/gdacc.service
-#   delegate_to: dev
+- name: Rsync unit files
+  synchronize: src={{git_dest}}/deploy_gdacc/config/gdacc.service dest=/lib/systemd/system/gdacc.service
+  delegate_to: dev
 
 - name: Rsync genesis files
   synchronize: src={{git_dest}}/deploy_gdacc/config/genesis.json dest=/data/genesis.json
