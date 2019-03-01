@@ -1,0 +1,60 @@
+#init
+#copy config file: upstart genesis gdacc
+#init chain
+#get enode list
+- name: Update git repo
+  git:
+    repo: "{{ git_repo }}"
+    dest: "{{ git_dest }}"
+    update: yes
+    track_submodules: yes
+    accept_hostkey: yes
+    version: "{{ git_branch }}"
+
+- name: Rsync unit files
+  synchronize: src={{git_dest}}/deploy_gdacc/config/gdacc.service dest=/lib/systemd/system/gdacc.service delete=yes recursive=yes archive=yes compress=yes times=yes
+  delegate_to: dev
+
+- name: Rsync genesis files
+  synchronize: src={{git_dest}}/deploy_gdacc/config/genesis.json dest=/data/genesis.json delete=yes recursive=yes archive=yes compress=yes times=yes
+  delegate_to: dev
+
+#  - name: Build gdacc
+#   hosts: buildserver
+#   # IMPORTANT!: environment ensure the shell style module work good, such as shell,command,make
+#   environment:
+#     PATH: /usr/local/go/bin:{{ ansible_env.PATH }}
+#   remote_user: root
+#   vars_files:
+#     - env_vars/prod.yml
+#   roles:
+#     - build
+
+# - name: Fetch gdacc executable
+#   hosts: buildserver
+#   roles:
+#     - fetch_gdacc
+
+# - name: Distribute gdacc executable and genesis.json
+#   hosts: nodes
+#   roles:
+#     - distribute_gdacc
+
+# - name: Init gdacc
+#   hosts: nodes
+#   vars_files:
+#     - env_vars/prod.yml
+#   roles:
+#     - init_chain
+
+
+# - name: Get all node's enode key
+#   hosts: nodes
+#   vars_files:
+#     - env_vars/prod.yml
+#   tasks:
+#     - name: get enode
+#       command: gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "admin.nodeInfo.enode"
+#       register: enode
+#     - debug: msg="{{enode.stdout}} {{ansible_default_ipv4.address}}"
+# #    - debug: msg="{{ansible_default_ipv4.address}}"

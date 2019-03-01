@@ -1,0 +1,5 @@
+[devserver]
+dev ansible_ssh_user=root
+
+[prodserver]
+prod1 ansible_ssh_user=root

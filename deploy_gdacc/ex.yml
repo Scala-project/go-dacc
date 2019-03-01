@@ -1,0 +1,53 @@
+---
+# deploy service
+
+- name: Rsync Config Files
+  synchronize: src=/home/yeah/dev/conf/ dest={{ service_dir }}conf delete=yes recursive=yes archive=yes compress=yes times=yes
+  delegate_to: dev
+
+- name: Backup Old Unzip
+  shell: cp {{ service_dir }}{{ service_zip }} {{ service_dir }}{{ service_zip }}.backup
+
+- name: Copy Service Zip
+  synchronize: src=/home/yeah/dev/target/universal/{{ service_zip }} dest={{ service_dir }}{{ service_zip }} archive=yes compress=yes times=yes
+  delegate_to: dev
+
+#- name: Public Remove Server from SLB
+#  shell: aliyuncli slb RemoveBackendServers --LoadBalancerId {{slb_id}} --BackendServers '["{{ecs_id}}"]'
+#  delegate_to: dev
+
+#- name: Private Remove Server from SLB
+#  shell: aliyuncli slb RemoveBackendServers --LoadBalancerId {{slb_id_priv}} --BackendServers '["{{ecs_id}}"]'
+#  delegate_to: dev
+
+- name: Stop Service
+  service: name={{ service_name }} state=stopped
+  become: yes
+  become_method: sudo
+
+- name: Remove Old Service Files
+  file: path={{ service_dir }}{{ service_file }} state=absent
+
+- name: Unzip New Service Files
+  unarchive: src={{ service_dir }}{{ service_zip }} dest={{ service_dir }} copy=no
+
+- name: Start Service
+  service: name={{ service_name }} state=started
+  become: yes
+  become_method: sudo
+
+#- name: Pause for Service Start
+#  pause:
+#    seconds: 10
+
+- name: Wait for Service to Start
+  wait_for:
+    port: 9000
+
+#- name: Public Add Server from SLB
+#  shell: aliyuncli slb AddBackendServers --LoadBalancerId {{slb_id}} --BackendServers '[{"ServerId":"{{ecs_id}}","Weight":"100"}]'
+#  delegate_to: dev
+
+#- name: Private Add Server from SLB
+#  shell: aliyuncli slb AddBackendServers --LoadBalancerId {{slb_id_priv}} --BackendServers '[{"ServerId":"{{ecs_id}}","Weight":"100"}]'
+#  delegate_to: dev

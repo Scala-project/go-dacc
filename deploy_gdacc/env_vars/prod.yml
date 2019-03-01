@@ -1,0 +1,28 @@
+---
+
+# ssh config
+ssh_user: root
+ssh_port: 22
+
+# gdacc config
+rpc_port: 8787
+genesis_path: /data/genesis.json
+datadir: /data
+
+# git config
+git_repo: https://github.com/daccproject/go-dacc.git
+git_branch: master
+git_dest: /root/go/src/github.com/daccproject/go-dacc
+git_repo_api: https://github.com/daccproject/dacc-net-intelligence-api.git
+git_branch_api: master
+git_dest_api: /data/dacc-net-intelligence-api
+
+# app config
+project_name: go-dacc
+application_name: gdacc
+
+# validator config
+validator_pwd: 0Bi77eWCrVLjvWiH
+
+# bootnode private IP
+bootnode_private_ip: 172.24.170.159
