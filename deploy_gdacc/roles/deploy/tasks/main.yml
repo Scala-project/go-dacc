@@ -1,19 +1,16 @@
 
 
-- name: Update git repo
-  git:
-    repo: "{{ git_repo }}"
-    dest: "{{ git_dest }}"
-    update: yes
-    track_submodules: yes
-    accept_hostkey: yes
-    version: "{{ git_branch }}"
-
-- name: Build gdacc
-  make:
-    chdir: "{{ git_dest }}"
-    target: gdacc 
-    
 - name: Rsync gdacc files
-  synchronize: src={{git_dest}}/build/bin/gdacc dest=/usr/bin delete=yes recursive=yes archive=yes compress=yes times=yes
+  synchronize: src={{git_dest}}/build/bin/gdacc dest=/opt/gdacc/bin
   delegate_to: dev
+
+- name: Stop gdacc service
+  systemd:
+    name: gdacc
+    state: stopped
+
+- name: Start gdacc service
+  systemd:
+    name: gdacc
+    daemon_reload: yes
+    state: started  

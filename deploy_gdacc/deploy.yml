@@ -1,0 +1,12 @@
+
+- name: Build
+  hosts: devserver
+  remote_user: root
+  roles:
+    - build
+    
+- name: Deploy
+  hosts: prodserver
+  remote_user: root
+  roles:
+    - deploy

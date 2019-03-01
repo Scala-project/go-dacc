@@ -10,4 +10,19 @@
   remote_user: root
   roles:
     - init
+
+- name: Deploy
+  hosts: prodserver
+  remote_user: root
+  roles:
+    - deploy
+
+
+- name: Get all node's enode key
+  hosts: prodserver
+  tasks:
+    - name: get enode
+      command: /opt/gdacc/bin/gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "admin.nodeInfo.enode"
+      register: enode
+    - debug: msg="{{enode.stdout}} {{ansible_default_ipv4.address}}"    
     

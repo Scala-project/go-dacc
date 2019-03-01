@@ -19,17 +19,6 @@
 - name: Init chain data
   command: /opt/gdacc/bin/gdacc --datadir "{{ datadir }}" init "{{ genesis_path }}"  
 
-- name: Stop gdacc service
-  systemd:
-    name: gdacc
-    state: stopped
-
-- name: Start gdacc service
-  systemd:
-    name: gdacc
-    daemon_reload: yes
-    state: started
-
 
 # - name: Get enode
 #   command: "{{bin_dir}}"/gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "admin.nodeInfo.enode"
