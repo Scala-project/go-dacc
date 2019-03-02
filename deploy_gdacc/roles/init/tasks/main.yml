@@ -35,7 +35,7 @@
     state: started
 
 - name: Clear file
-  shell: true > ./temp-nodes.txt
+  shell: true > ./temp/static-nodes.txt
   run_once: true
   delegate_to: localhost
 

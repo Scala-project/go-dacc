@@ -10,7 +10,7 @@
 - debug: msg="{{newaccount.stdout}}" 
 
 - name: Clear accounts file
-  shell: true > ./accounts.temp
+  shell: true > ./temp/accounts.txt
   run_once: true
   delegate_to: localhost
 
