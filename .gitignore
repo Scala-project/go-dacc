@@ -53,6 +53,7 @@ hosts_production
 hosts_9
 *.retry
 
-/deploy_gdacc/temp/*.*
+deploy_gdacc/temp/static-nodes.txt
+deploy_gdacc/config/static-nodes.json
 
 

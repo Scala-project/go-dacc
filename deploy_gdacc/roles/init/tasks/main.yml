@@ -43,7 +43,7 @@
   command: /opt/gdacc/bin/gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "admin.nodeInfo.enode"
   register: enode
 
-- debug: msg="{{enode.stdout}} {{ansible_default_ipv4.address}}"   
+# - debug: msg="{{enode.stdout}} {{ansible_default_ipv4.address}}"   
 
 - name: Print enode
   shell: echo "{{enode.stdout}} {{ansible_default_ipv4.address}}" >> ./temp/static-nodes.txt
