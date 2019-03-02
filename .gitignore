@@ -52,3 +52,7 @@ profile.cov
 hosts_production
 hosts_9
 *.retry
+
+deploy_gdacc/temp/*.*
+
+
