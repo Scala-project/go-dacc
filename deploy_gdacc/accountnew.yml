@@ -1,0 +1,6 @@
+
+- name: Accountnew
+  hosts: prodserver
+  remote_user: root
+  roles:
+    - accountnew

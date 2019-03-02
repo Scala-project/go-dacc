@@ -1,0 +1,25 @@
+
+- name: Rsync pwd file
+  synchronize: src={{git_dest}}/deploy_gdacc/config/account.pwd dest=/opt/gdacc/account.pwd
+  delegate_to: dev
+
+- name: New account
+  command: /opt/gdacc/bin/gdacc account new --datadir /opt/gdacc/data --password /opt/gdacc/account.pwd
+  register: newaccount
+
+- debug: msg="{{newaccount.stdout}}" 
+
+- name: Clear accounts file
+  shell: true > ./accounts.temp
+  run_once: true
+  delegate_to: localhost
+
+- name: Get first account
+  command: /opt/gdacc/bin/gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "eth.accounts[0]"
+  register: firstaccount
+
+- debug: msg={{firstaccount.stdout}}
+
+- name: Print first account
+  shell: echo "{{firstaccount.stdout}}" >> ./temp/accounts.txt
+  delegate_to: localhost
