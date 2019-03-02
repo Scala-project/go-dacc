@@ -1,0 +1,4 @@
+
+- name: Parse enode
+  shell: python ./script/parsenode.py 
+  delegate_to: localhost 

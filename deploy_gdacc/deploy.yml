@@ -4,7 +4,13 @@
   remote_user: root
   roles:
     - build
-    
+
+- name: Rsyncdacc
+  hosts: prodserver
+  remote_user: root
+  roles:
+    - rsyncdacc   
+
 - name: Deploy
   hosts: prodserver
   remote_user: root

@@ -1,9 +1,4 @@
 
-
-- name: Rsync gdacc files
-  synchronize: src={{git_dest}}/build/bin/gdacc dest=/opt/gdacc/bin
-  delegate_to: dev
-
 - name: Stop gdacc service
   systemd:
     name: gdacc
@@ -13,4 +8,5 @@
   systemd:
     name: gdacc
     daemon_reload: yes
-    state: started  
+    state: started
+

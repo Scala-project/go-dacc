@@ -3,6 +3,15 @@
 #init chain
 #get enode list
 
+- name: Stop gdacc service
+  systemd:
+    name: gdacc
+    state: stopped
+
+- name: Delete old chain data
+  file:
+    state: absent
+    path: "{{datadir}}/gdacc"
 
 - name: Rsync unit files
   synchronize: src={{git_dest}}/deploy_gdacc/config/gdacc.service dest=/lib/systemd/system/gdacc.service
@@ -19,6 +28,21 @@
 - name: Init chain data
   command: /opt/gdacc/bin/gdacc --datadir "{{ datadir }}" init "{{ genesis_path }}"  
 
+- name: Start gdacc service
+  systemd:
+    name: gdacc
+    daemon_reload: yes
+    state: started
+
+- name: Get enode
+  command: /opt/gdacc/bin/gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "admin.nodeInfo.enode"
+  register: enode
+
+- debug: msg="{{enode.stdout}} {{ansible_default_ipv4.address}}"   
+
+- name: Print enode
+  shell: echo "{{enode.stdout}} {{ansible_default_ipv4.address}}" >> ./temp-nodes.txt
+  delegate_to: localhost
 
 # - name: Get enode
 #   command: "{{bin_dir}}"/gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "admin.nodeInfo.enode"
