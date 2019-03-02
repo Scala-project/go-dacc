@@ -67,12 +67,6 @@
     name: gdacc
     state: stopped
 
-- name: Start gdacc service
-  systemd:
-    name: gdacc
-    daemon_reload: yes
-    state: started
-
 
 
 
