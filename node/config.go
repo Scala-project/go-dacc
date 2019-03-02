@@ -337,7 +337,9 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 
 // StaticNodes returns a list of node enode URLs configured as static nodes.
 func (c *Config) StaticNodes() []*discover.Node {
-	return c.parsePersistentNodes(c.ResolvePath(datadirStaticNodes))
+	snp := c.ResolvePath(datadirStaticNodes)
+	log.Info(fmt.Sprintf("Static nodes path: %s", snp))
+	return c.parsePersistentNodes(snp)
 }
 
 // TrustedNodes returns a list of node enode URLs configured as trusted nodes.

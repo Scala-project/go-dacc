@@ -34,6 +34,11 @@
     daemon_reload: yes
     state: started
 
+- name: Clear file
+  shell: true > ./temp-nodes.txt
+  run_once: true
+  delegate_to: localhost
+
 - name: Get enode
   command: /opt/gdacc/bin/gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "admin.nodeInfo.enode"
   register: enode
@@ -44,37 +49,49 @@
   shell: echo "{{enode.stdout}} {{ansible_default_ipv4.address}}" >> ./temp-nodes.txt
   delegate_to: localhost
 
-# - name: Get enode
-#   command: "{{bin_dir}}"/gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "admin.nodeInfo.enode"
-#   register: enode
+- name: Parse enode
+  shell: python ./script/parsenode.py 
+  run_once: true
+  delegate_to: localhost   
 
-# - debug: msg="{{enode.stdout}} {{ansible_default_ipv4.address}}"
+- name: Copy static nodes file to nodes
+  copy:
+    src: ./static-nodes.json
+    dest: /opt/gdacc/data/gdacc/static-nodes.json
+    owner: root
+    group: root
+    mode: 0644
 
-# - name: Fetch gdacc executable
-#   hosts: buildserver
-#   roles:
-#     - fetch_gdacc
+- name: Stop gdacc service
+  systemd:
+    name: gdacc
+    state: stopped
 
-# - name: Distribute gdacc executable and genesis.json
-#   hosts: nodes
-#   roles:
-#     - distribute_gdacc
-
-# - name: Init gdacc
-#   hosts: nodes
-#   vars_files:
-#     - env_vars/prod.yml
-#   roles:
-#     - init_chain
+- name: Start gdacc service
+  systemd:
+    name: gdacc
+    daemon_reload: yes
+    state: started
 
 
-# - name: Get all node's enode key
-#   hosts: nodes
-#   vars_files:
-#     - env_vars/prod.yml
-#   tasks:
-#     - name: get enode
-#       command: gdacc attach http://127.0.0.1:"{{ rpc_port }}" --exec "admin.nodeInfo.enode"
-#       register: enode
-#     - debug: msg="{{enode.stdout}} {{ansible_default_ipv4.address}}"
-# #    - debug: msg="{{ansible_default_ipv4.address}}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

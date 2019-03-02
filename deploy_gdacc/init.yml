@@ -5,37 +5,11 @@
   roles:
     - build
 
-# - name: Rsyncdacc
-#   hosts: prodserver
-#   remote_user: root
-#   roles:
-#     - rsyncdacc    
-
-# - name: Init
-#   hosts: prodserver
-#   remote_user: root
-#   roles:
-#     - init
-
-# - name: Get Enode
-#   hosts: prodserver
-#   remote_user: root
-#   roles:
-#     - deploy
-
-
 - name: Init the Chain
   hosts: prodserver
   remote_user: root
   roles:
     - init
-
-- name: Parse Enode and Upload to Nodes 
-  hosts: localhost
-  roles:
-    - parse 
-
-
 
 
 # #### deploy 
