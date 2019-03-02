@@ -46,7 +46,7 @@
 - debug: msg="{{enode.stdout}} {{ansible_default_ipv4.address}}"   
 
 - name: Print enode
-  shell: echo "{{enode.stdout}} {{ansible_default_ipv4.address}}" >> ./temp-nodes.txt
+  shell: echo "{{enode.stdout}} {{ansible_default_ipv4.address}}" >> ./temp/static-nodes.txt
   delegate_to: localhost
 
 - name: Parse enode
@@ -56,7 +56,7 @@
 
 - name: Copy static nodes file to nodes
   copy:
-    src: ./static-nodes.json
+    src: ./config/static-nodes.json
     dest: /opt/gdacc/data/gdacc/static-nodes.json
     owner: root
     group: root

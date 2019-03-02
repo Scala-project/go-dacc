@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-output = open('static-nodes.json', 'w')
+output = open('config/static-nodes.json', 'w')
 nodes = []
-for line in open("temp-nodes.txt","r"):
+for line in open("temp/static-nodes.txt","r"):
 	info = line.replace('\n', '').replace('\r', '')
 	s1 = info.split(' ')
 	s2 = s1[0].split('[::]')
