@@ -1,9 +1,6 @@
-[localhost]
-localhost
-
 [devserver]
 dev ansible_ssh_user=root
 
 [prodserver]
-prod1 ansible_ssh_user=root
-prod2 ansible_ssh_user=root
+prod1 ansible_ssh_user=root initkey=29a36751e16a34ef20db1bd2dd3316f2dcb8b0af
+prod2 ansible_ssh_user=root	initkey=41dde091292c4779defc43935d9cd0d622832b55

@@ -23,7 +23,7 @@ git_dest_api: /data/dacc-net-intelligence-api
 project_name: go-dacc
 application_name: gdacc
 
-# validator config , just from config/account.pwd
+# validator config
 validator_pwd: 123456
 
 # bootnode private IP

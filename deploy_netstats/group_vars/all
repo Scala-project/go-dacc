@@ -1,0 +1,5 @@
+---
+
+git_repo_api: https://github.com/daccproject/dacc-net-intelligence-api.git
+git_branch_api: master
+git_dest_api: /data/dacc-net-intelligence-api

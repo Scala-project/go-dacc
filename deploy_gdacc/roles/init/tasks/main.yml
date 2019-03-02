@@ -62,12 +62,24 @@
     group: root
     mode: 0644
 
+- name: Copy account key file to nodes
+  copy:
+    src: ./keys/{{initkey}}
+    dest: /opt/gdacc/data/keystore/
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Stop gdacc service
   systemd:
     name: gdacc
     state: stopped
 
-
+- name: Start gdacc service
+  systemd:
+    name: gdacc
+    daemon_reload: yes
+    state: started
 
 
 
