@@ -1,5 +1,9 @@
 ---
 
+git_repo: https://github.com/daccproject/go-dacc.git
+git_branch: master
+git_dest: /root/go/src/github.com/daccproject/go-dacc
+
 git_repo_api: https://github.com/daccproject/dacc-net-intelligence-api.git
 git_branch_api: master
 git_dest_api: /data/dacc-net-intelligence-api

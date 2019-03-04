@@ -1,9 +1,9 @@
 
-# - name: Build
-#   hosts: prodserver
-#   remote_user: root
-#   roles:
-#     - buildapi
+- name: Update repo
+  hosts: devserver
+  remote_user: root
+  roles:
+    - updaterepo
 
 - name: Build
   hosts: netstats
