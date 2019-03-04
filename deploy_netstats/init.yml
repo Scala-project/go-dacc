@@ -1,6 +1,0 @@
-
-- name: Build
-  hosts: prodserver
-  remote_user: root
-  roles:
-    - build

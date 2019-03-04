@@ -1,0 +1,29 @@
+
+- name: Git clone
+  git:
+    repo: "{{ git_repo_netstats }}"
+    dest: "{{ git_dest_netstats }}"
+    update: yes
+    track_submodules: yes
+    accept_hostkey: yes
+    version: "{{ git_branch_netstats }}"
+
+- name: Rsync unit file
+  synchronize: src={{git_dest}}/deploy_netstats/config/dacc-stats.service dest=/lib/systemd/system/dacc-stats.service
+  delegate_to: dev
+
+- name: Rsync ws-secret file
+  synchronize: src={{git_dest}}/deploy_netstats/config/ws_secret.json dest={{git_dest_netstats}}/ws_secret.json
+  delegate_to: dev
+
+- name: grunt
+  command: /usr/bin/grunt
+
+- name: grunt all
+  command: /usr/bin/grunt all 
+
+- name: Restart dacc-netstats service
+  systemd:
+    name: dacc-stats
+    state: restarted
+    daemon_reload: yes

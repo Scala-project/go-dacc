@@ -1,3 +1,6 @@
+[devserver]
+dev
+
 [prodserver]
 prod1
 prod2

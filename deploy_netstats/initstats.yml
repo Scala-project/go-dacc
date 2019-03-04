@@ -1,0 +1,12 @@
+
+# - name: Build
+#   hosts: prodserver
+#   remote_user: root
+#   roles:
+#     - buildapi
+
+- name: Build
+  hosts: netstats
+  remote_user: root
+  roles:
+    - buildstats

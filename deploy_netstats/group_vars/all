@@ -3,3 +3,8 @@
 git_repo_api: https://github.com/daccproject/dacc-net-intelligence-api.git
 git_branch_api: master
 git_dest_api: /data/dacc-net-intelligence-api
+
+
+git_repo_netstats: https://github.com/daccproject/dacc-netstats.git
+git_branch_netstats: master
+git_dest_netstats: /data/dacc-netstats

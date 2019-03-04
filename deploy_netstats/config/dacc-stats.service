@@ -1,0 +1,16 @@
+[Unit]
+Description=daccstats Service
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/node ./bin/www
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+User=www
+Group=www
+#Environment=NODE_ENV=production PORT=1337
+WorkingDirectory=/data/dacc-netstats
+
+[Install]
+WantedBy=multi-user.target
