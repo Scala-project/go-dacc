@@ -2,8 +2,8 @@
 dev
 
 [prodserver]
-prod1
-prod2
+prod1 nodename=gdacc1
+prod2 nodename=gdacc2
 
 [netstats]
 netstats

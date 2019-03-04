@@ -1,6 +1,6 @@
 [
   {
-    "name"              : "{{ hostname }}",
+    "name"              : "{{ nodename }}",
     "script"            : "app.js",
     "log_date_format"   : "YYYY-MM-DD HH:mm Z",
     "merge_logs"        : false,
@@ -12,12 +12,12 @@
     {
       "NODE_ENV"        : "production",
       "RPC_HOST"        : "localhost",
-      "RPC_PORT"        : "8787",
-      "LISTENING_PORT"  : "30789",
-      "INSTANCE_NAME"   : "{{ hostname }}",
+      "RPC_PORT"        : "{{rpc_port}}",
+      "LISTENING_PORT"  : "{{listen_port}}",
+      "INSTANCE_NAME"   : "{{ nodename }}",
       "CONTACT_DETAILS" : "",
-      "WS_SERVER"       : "http://172.21.149.255:3000",
-      "WS_SECRET"       : "gdacc-secret-2019",
+      "WS_SERVER"       : "{{netstats_ws_host}}",
+      "WS_SECRET"       : "{{netstats_ws_secret}}",
       "VERBOSITY"       : 2
     }
   }

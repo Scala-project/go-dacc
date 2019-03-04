@@ -12,9 +12,18 @@
   synchronize: src={{git_dest}}/deploy_netstats/config/dacc-stats.service dest=/lib/systemd/system/
   delegate_to: dev
 
-- name: Rsync ws-secret file
-  synchronize: src={{git_dest}}/deploy_netstats/config/ws_secret.json dest={{git_dest_netstats}}/ws_secret.json
-  delegate_to: dev
+# - name: Rsync ws-secret file
+#   synchronize: src={{git_dest}}/deploy_netstats/config/ws_secret.json dest={{git_dest_netstats}}/ws_secret.json
+#   delegate_to: dev
+
+- name: Distribute ws-secret file
+  template:
+    src: ./config/ws_secret.json
+    dest: "{{git_dest_netstats}}/ws_secret.json"
+    owner: root
+    group: root
+    mode: '0644'  
+
 
 - name: grunt
   environment:
@@ -30,7 +39,7 @@
   args:
     chdir: "{{ git_dest_netstats }}"
 
-- name: Restart dacc-netstats service
+- name: Restart dacc-stats service
   systemd:
     name: dacc-stats
     state: restarted

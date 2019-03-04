@@ -1,5 +1,11 @@
 ---
 
+
+rpc_port: 8787
+listen_port: 30789
+netstats_ws_host: http://172.21.149.255:3000
+netstats_ws_secret: gdacc-secret-2019
+
 git_repo: https://github.com/daccproject/go-dacc.git
 git_branch: master
 git_dest: /root/go/src/github.com/daccproject/go-dacc

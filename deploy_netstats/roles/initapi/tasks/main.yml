@@ -1,0 +1,22 @@
+
+# - name: Git clone
+#   git:
+#     repo: "{{ git_repo_api }}"
+#     dest: "{{ git_dest_api }}"
+#     update: yes
+#     track_submodules: yes
+#     accept_hostkey: yes
+#     version: "{{ git_branch_api }}"
+
+- name: Distribute app.json
+  template:
+    src: ./config/app.json
+    dest: /data/dacc-net-intelligence-api/app.json
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart pm2
+  command: pm2 restart app.json
+  args:
+    chdir: /data/dacc-net-intelligence-api    

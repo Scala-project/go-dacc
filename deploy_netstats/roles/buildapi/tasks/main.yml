@@ -1,9 +1,0 @@
-
-- name: Git clone
-  git:
-    repo: "{{ git_repo_api }}"
-    dest: "{{ git_dest_api }}"
-    update: yes
-    track_submodules: yes
-    accept_hostkey: yes
-    version: "{{ git_branch_api }}"
