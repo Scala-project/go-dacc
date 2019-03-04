@@ -1,15 +1,15 @@
 
-- name: Git clone
-  git:
-    repo: "{{ git_repo_netstats }}"
-    dest: "{{ git_dest_netstats }}"
-    update: yes
-    track_submodules: yes
-    accept_hostkey: yes
-    version: "{{ git_branch_netstats }}"
+# - name: Git clone
+#   git:
+#     repo: "{{ git_repo_netstats }}"
+#     dest: "{{ git_dest_netstats }}"
+#     update: yes
+#     track_submodules: yes
+#     accept_hostkey: yes
+#     version: "{{ git_branch_netstats }}"
 
 - name: Rsync unit file
-  synchronize: src={{git_dest}}/deploy_netstats/config/dacc-stats.service dest=/lib/systemd/system/dacc-stats.service
+  synchronize: src={{git_dest}}/deploy_netstats/config/dacc-stats.service dest=/lib/systemd/system/
   delegate_to: dev
 
 - name: Rsync ws-secret file
@@ -17,10 +17,18 @@
   delegate_to: dev
 
 - name: grunt
-  command: /usr/bin/grunt
+  environment:
+    PATH: /usr/local/go/bin:{{ ansible_env.PATH }}
+  shell: grunt 
+  args:
+    chdir: "{{ git_dest_netstats }}"
 
 - name: grunt all
-  command: /usr/bin/grunt all 
+  environment:
+    PATH: /usr/local/go/bin:{{ ansible_env.PATH }}
+  shell: grunt all
+  args:
+    chdir: "{{ git_dest_netstats }}"
 
 - name: Restart dacc-netstats service
   systemd:
