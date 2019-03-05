@@ -2,6 +2,7 @@
   {
     "name"              : "{{ nodename }}",
     "script"            : "app.js",
+    "cwd"               : "{{git_dest_api}}",
     "log_date_format"   : "YYYY-MM-DD HH:mm Z",
     "merge_logs"        : false,
     "watch"             : false,

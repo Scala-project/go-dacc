@@ -11,12 +11,12 @@
 - name: Distribute app.json
   template:
     src: ./config/app.json
-    dest: /data/dacc-net-intelligence-api/app.json
+    dest: /data/dacc_api.json
     owner: root
     group: root
     mode: '0644'
 
 - name: Restart pm2
-  command: pm2 restart app.json
+  command: pm2 restart dacc_api.json
   args:
-    chdir: /data/dacc-net-intelligence-api    
+    chdir: /data   
