@@ -1,9 +1,4 @@
 
-# - name: Update repo
-#   hosts: devserver
-#   remote_user: root
-#   roles:
-#     - updaterepo
 
 - name: Initstats
   hosts: netstats
