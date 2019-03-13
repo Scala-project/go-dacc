@@ -1,0 +1,10 @@
+- name: Stop ndacc service
+  systemd:
+    name: ndacc
+    state: stopped
+
+- name: Start ndacc service
+  systemd:
+    name: ndacc
+    daemon_reload: yes
+    state: started

@@ -3,3 +3,5 @@ ndev ansible_ssh_user=root
 
 [prodserver]
 nprod1 ansible_ssh_user=root miner=n1bYzGNF34j6bJ4JxMZX19YMKG4kcbBwKdz network=key1
+nprod2 ansible_ssh_user=root miner=n1c4fy3NCjwUTvVNTVKpyPYfMnH97LKsyU8 network=key2
+nprod3 ansible_ssh_user=root miner=n1dHGLcgivQVvo6LVox8iUpK3ivWa2Q5KRo network=key3

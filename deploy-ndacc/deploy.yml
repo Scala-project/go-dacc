@@ -4,8 +4,8 @@
   roles:
     - build
 
-- name: Init
+- name: Deploy
   hosts: prodserver
   remote_user: root
   roles:
-    - init
+    - deploy
