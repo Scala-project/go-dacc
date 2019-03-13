@@ -1,0 +1,5 @@
+[devserver]
+ndev ansible_ssh_user=root
+
+[prodserver]
+nprod1 ansible_ssh_user=root miner=n1bYzGNF34j6bJ4JxMZX19YMKG4kcbBwKdz network=key1

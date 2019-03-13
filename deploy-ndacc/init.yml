@@ -1,0 +1,11 @@
+- name: Build
+  hosts: devserver
+  remote_user: root
+  roles:
+    - build
+
+- name: Init
+  hosts: prodserver
+  remote_user: root
+  roles:
+    - init

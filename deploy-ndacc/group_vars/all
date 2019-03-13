@@ -1,0 +1,17 @@
+---
+
+# ssh config
+ssh_user: root
+ssh_port: 22
+
+# git config
+git_repo: https://github.com/nebulasio/go-nebulas.git
+git_branch: master
+git_dest: /root/go/src/github.com/nebulasio/go-nebulas
+
+genesis_path: /opt/neb/genesis.conf
+conf_path: /opt/neb/node.conf
+data_path: /opt/neb/data
+logs_path: /opt/neb/logs
+keystore_path: /opt/neb/keystore
+network_path: /opt/neb/network

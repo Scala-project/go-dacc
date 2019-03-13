@@ -1,0 +1,50 @@
+- name: Distribute genesis
+  copy:
+    src: ./config/genesis.conf
+    dest: "{{genesis_path}}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Distribute config
+  template:
+    src: ./config/node.conf
+    dest: "{{conf_path}}"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Distribute keys
+  copy:
+    src: "./keys/{{miner}}"
+    dest: "{{keystore_path}}/"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Distribute network
+  copy:
+    src: "./network/{{network}}"
+    dest: "{{network_path}}/key"
+    owner: root
+    group: root
+    mode: 0644 
+
+- name: Distribute unit file
+  copy:
+    src: "./config/ndacc.service"
+    dest: /lib/systemd/system/ndacc.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Stop ndacc service
+  systemd:
+    name: ndacc
+    state: stopped
+
+- name: Start ndacc service
+  systemd:
+    name: ndacc
+    daemon_reload: yes
+    state: started    
