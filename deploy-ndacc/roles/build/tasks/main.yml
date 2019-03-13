@@ -13,3 +13,8 @@
   shell: make build
   args:
     chdir: "{{ git_dest }}"
+
+- name: Copy bin
+  shell: cp neb-`git rev-parse HEAD` /opt/neb/neb
+  args:
+    chdir: "{{ git_dest }}"
