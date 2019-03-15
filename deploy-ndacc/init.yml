@@ -1,8 +1,8 @@
-#- name: Build
-#  hosts: prodserver
-#  remote_user: root
-#  roles:
-#    - build
+- name: Build
+  hosts: prodserver
+  remote_user: root
+  roles:
+    - build
 
 - name: Init
   hosts: prodserver
