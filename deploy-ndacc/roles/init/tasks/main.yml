@@ -76,9 +76,18 @@
   shell: python /data/getnode.py
   register: nodeid
 
-- debug: msg="{{nodeid.stdout}} {{ansible_default_ipv4.address}}"
+- debug: msg="/ip4/{{ansible_default_ipv4.address}}/tcp/8610/ipfs/{{nodeid.stdout}}"
 
-- name: Print enode
-  shell: echo "{{nodeid.stdout}} {{ansible_default_ipv4.address}}" >> ./temp/nodeid.txt
+- name: Clear file
+  shell: true > ./temp/nodes.txt
+  run_once: true
   delegate_to: localhost
 
+- name: Print enode
+  shell: echo "/ip4/{{ansible_default_ipv4.address}}/tcp/8610/ipfs/{{nodeid.stdout}}" >> ./temp/nodes.txt
+  delegate_to: localhost
+
+- name: Parse enode
+  shell: python ./script/genseed.py
+  run_once: true
+  delegate_to: localhost
