@@ -1,93 +1,93 @@
 
-#- name: Stop ndacc service
-#  systemd:
-#    name: ndacc
-#    state: stopped
-#
-#- name: Delete old data
-#  file:
-#    state: absent
-#    path: "{{data_path}}"
-#
-#- name: Distribute genesis
-#  copy:
-#    src: ./config/genesis.conf
-#    dest: "{{genesis_path}}"
-#    owner: root
-#    group: root
-#    mode: 0644
-#
-#- name: Distribute config
-#  template:
-#    src: ./config/node.conf
-#    dest: "{{conf_path}}"
-#    owner: root
-#    group: root
-#    mode: 0644
-#
-#- name: Distribute keys
-#  copy:
-#    src: "./keys/{{miner}}"
-#    dest: "{{keystore_path}}/"
-#    owner: root
-#    group: root
-#    mode: 0644
-#
-#- name: Distribute network
-#  copy:
-#    src: "./network/{{network}}"
-#    dest: "{{network_path}}/key"
-#    owner: root
-#    group: root
-#    mode: 0644
-#
-#- name: Distribute unit file
-#  template:
-#    src: "./config/ndacc.service"
-#    dest: /lib/systemd/system/ndacc.service
-#    owner: root
-#    group: root
-#    mode: 0644
-#
-#- name: Distribute getnode script
-#  copy:
-#    src: "./script/getnode.py"
-#    dest: "/data/"
-#    owner: root
-#    group: root
-#    mode: 0644
-#
-#- name: Stop ndacc service
-#  systemd:
-#    name: ndacc
-#    state: stopped
-#
-#- name: Start ndacc service
-#  systemd:
-#    name: ndacc
-#    daemon_reload: yes
-#    state: started
-#
-#- name: Waiting
-#  wait_for:
-#    port: 8615
+- name: Stop ndacc service
+  systemd:
+    name: ndacc
+    state: stopped
 
-- name: Get enode id
+- name: Delete old data
+  file:
+    state: absent
+    path: "{{data_path}}"
+
+- name: Distribute genesis
+  copy:
+    src: ./config/genesis.conf
+    dest: "{{genesis_path}}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Distribute config
+  template:
+    src: ./config/node.conf
+    dest: "{{conf_path}}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Distribute keys
+  copy:
+    src: "./keys/{{miner}}"
+    dest: "{{keystore_path}}/"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Distribute network
+  copy:
+    src: "./network/{{network}}"
+    dest: "{{network_path}}/key"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Distribute unit file
+  template:
+    src: "./config/ndacc.service"
+    dest: /lib/systemd/system/ndacc.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Distribute getnode script
+  copy:
+    src: "./script/getnode.py"
+    dest: "/data/"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Stop ndacc service
+  systemd:
+    name: ndacc
+    state: stopped
+
+- name: Start ndacc service
+  systemd:
+    name: ndacc
+    daemon_reload: yes
+    state: started
+
+- name: Waiting
+  wait_for:
+    port: 8615
+
+- name: Get node id
   shell: python /data/getnode.py
   register: nodeid
 
 - debug: msg="/ip4/{{ansible_default_ipv4.address}}/tcp/8610/ipfs/{{nodeid.stdout}}"
 
 - name: Clear file
-  shell: true > ./temp/nodes.txt
+  shell: true > ./temp/seeds.txt
   run_once: true
   delegate_to: localhost
 
-- name: Print enode
+- name: Print seed
   shell: echo "/ip4/{{ansible_default_ipv4.address}}/tcp/8610/ipfs/{{nodeid.stdout}}" >> ./temp/seeds.txt
   delegate_to: localhost
 
-- name: Parse enode
+- name: Parse seed
   shell: python ./script/genseed.py
   run_once: true
   delegate_to: localhost
