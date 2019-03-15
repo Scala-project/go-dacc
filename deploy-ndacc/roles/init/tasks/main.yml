@@ -1,3 +1,14 @@
+
+- name: Stop ndacc service
+  systemd:
+    name: ndacc
+    state: stopped
+
+- name: Delete old data
+  file:
+    state: absent
+    path: "{{data_path}}"
+
 - name: Distribute genesis
   copy:
     src: ./config/genesis.conf
@@ -12,7 +23,7 @@
     dest: "{{conf_path}}"
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
 
 - name: Distribute keys
   copy:
