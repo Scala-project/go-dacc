@@ -42,7 +42,7 @@
     mode: 0644 
 
 - name: Distribute unit file
-  copy:
+  template:
     src: "./config/ndacc.service"
     dest: /lib/systemd/system/ndacc.service
     owner: root

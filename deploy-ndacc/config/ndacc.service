@@ -6,13 +6,13 @@ After=syslog.target network.target
 User=root
 Group=root
 Type=simple
-ExecStart=/root/go/src/github.com/nebulasio/go-nebulas/neb -c /opt/neb/node.conf
+ExecStart={{git_dest}}/neb -c {{conf_path}}
 KillMode=process
 KillSignal=SIGINT
 TimeoutStopSec=90
 Restart=on-failure
 RestartSec=1s
-WorkingDirectory=/root/go/src/github.com/nebulasio/go-nebulas
+WorkingDirectory={{git_dest}}
 
 [Install]
 WantedBy=multi-user.target
