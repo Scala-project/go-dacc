@@ -84,7 +84,7 @@
   delegate_to: localhost
 
 - name: Print enode
-  shell: echo "/ip4/{{ansible_default_ipv4.address}}/tcp/8610/ipfs/{{nodeid.stdout}}" >> ./temp/nodes.txt
+  shell: echo "/ip4/{{ansible_default_ipv4.address}}/tcp/8610/ipfs/{{nodeid.stdout}}" >> ./temp/seeds.txt
   delegate_to: localhost
 
 - name: Parse enode

@@ -2,12 +2,12 @@
 # coding=utf-8
 
 output = open('config/seeds.json', 'w')
-nodes = []
-for line in open("temp/nodes.txt","r"):
+seeds = []
+for line in open("temp/seeds.txt","r"):
 	info = line.replace('\n', '').replace('\r', '')
 	n = '\"'+info+'\"'
-	nodes.append(n)
-ret = ','.join(nodes)
+	seeds.append(n)
+ret = ','.join(seeds)
 output.write('[')
 output.write(ret)
 output.write(']')
