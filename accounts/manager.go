@@ -1,199 +1,458 @@
-// Copyright 2017 The go-dacc Authors
+// Copyright (C) 2017 go-dacc authors
+//
 // This file is part of the go-dacc library.
 //
-// The go-dacc library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
+// the go-dacc library is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-dacc library is distributed in the hope that it will be useful,
+// the go-dacc library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-dacc library. If not, see <http://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with the go-dacc library.  If not, see <http://www.gnu.org/licenses/>.
+//
 
-package accounts
+package account
 
 import (
-	"reflect"
-	"sort"
+	"errors"
+
+	"github.com/daccproject/go-dacc/crypto/hash"
+	"github.com/daccproject/go-dacc/crypto/keystore/secp256k1/vrf/secp256k1VRF"
+
+	"github.com/daccproject/go-dacc/util/byteutils"
+
+	"path/filepath"
+
+	"time"
+
 	"sync"
 
-	"github.com/daccproject/go-dacc/event"
+	"github.com/daccproject/go-dacc/core"
+	"github.com/daccproject/go-dacc/crypto"
+	"github.com/daccproject/go-dacc/crypto/cipher"
+	"github.com/daccproject/go-dacc/crypto/keystore"
+	"github.com/daccproject/go-dacc/crypto/utils"
+	"github.com/daccproject/go-dacc/neblet/pb"
+	"github.com/daccproject/go-dacc/util/logging"
+	"github.com/sirupsen/logrus"
 )
 
-// Manager is an overarching account manager that can communicate with various
-// backends for signing transactions.
+// const SignatureCiphers
+const (
+	EccSecp256K1      = "ECC_SECP256K1"
+	EccSecp256K1Value = 1
+
+	DefaultKeyDir = "keydir"
+)
+
+var (
+	// ErrAccountNotFound account is not found.
+	ErrAccountNotFound = errors.New("account is not found")
+
+	// ErrAccountIsLocked account locked.
+	ErrAccountIsLocked = errors.New("account is locked")
+
+	// ErrInvalidSignerAddress sign addr not from
+	ErrInvalidSignerAddress = errors.New("transaction sign not use from address")
+)
+
+// Neblet interface breaks cycle import dependency and hides unused services.
+type Neblet interface {
+	Config() *nebletpb.Config
+}
+
+// Manager accounts manager ,handle account generate and storage
 type Manager struct {
-	backends map[reflect.Type][]Backend // Index of backends currently registered
-	updaters []event.Subscription       // Wallet update subscriptions for all backends
-	updates  chan WalletEvent           // Subscription sink for backend wallet changes
-	wallets  []Wallet                   // Cache of all wallets from all registered backends
 
-	feed event.Feed // Wallet feed notifying of arrivals/departures
+	// keystore
+	ks *keystore.Keystore
 
-	quit chan chan error
-	lock sync.RWMutex
+	// key save path
+	keydir string
+
+	// key encrypt alg
+	encryptAlg keystore.Algorithm
+
+	// key signature alg
+	signatureAlg keystore.Algorithm
+
+	// account slice
+	accounts []*account
+
+	mutex sync.Mutex
 }
 
-// NewManager creates a generic account manager to sign transaction via various
-// supported backends.
-func NewManager(backends ...Backend) *Manager {
-	// Retrieve the initial list of wallets from the backends and sort by URL
-	var wallets []Wallet
-	for _, backend := range backends {
-		wallets = merge(wallets, backend.Wallets()...)
-	}
-	// Subscribe to wallet notifications from all backends
-	updates := make(chan WalletEvent, 4*len(backends))
-
-	subs := make([]event.Subscription, len(backends))
-	for i, backend := range backends {
-		subs[i] = backend.Subscribe(updates)
-	}
-	// Assemble the account manager and return
-	am := &Manager{
-		backends: make(map[reflect.Type][]Backend),
-		updaters: subs,
-		updates:  updates,
-		wallets:  wallets,
-		quit:     make(chan chan error),
-	}
-	for _, backend := range backends {
-		kind := reflect.TypeOf(backend)
-		am.backends[kind] = append(am.backends[kind], backend)
-	}
-	go am.update()
-
-	return am
-}
-
-// Close terminates the account manager's internal notification processes.
-func (am *Manager) Close() error {
-	errc := make(chan error)
-	am.quit <- errc
-	return <-errc
-}
-
-// update is the wallet event loop listening for notifications from the backends
-// and updating the cache of wallets.
-func (am *Manager) update() {
-	// Close all subscriptions when the manager terminates
-	defer func() {
-		am.lock.Lock()
-		for _, sub := range am.updaters {
-			sub.Unsubscribe()
-		}
-		am.updaters = nil
-		am.lock.Unlock()
-	}()
-
-	// Loop until termination
-	for {
-		select {
-		case event := <-am.updates:
-			// Wallet event arrived, update local cache
-			am.lock.Lock()
-			switch event.Kind {
-			case WalletArrived:
-				am.wallets = merge(am.wallets, event.Wallet)
-			case WalletDropped:
-				am.wallets = drop(am.wallets, event.Wallet)
-			}
-			am.lock.Unlock()
-
-			// Notify any listeners of the event
-			am.feed.Send(event)
-
-		case errc := <-am.quit:
-			// Manager terminating, return
-			errc <- nil
-			return
-		}
-	}
-}
-
-// Backends retrieves the backend(s) with the given type from the account manager.
-func (am *Manager) Backends(kind reflect.Type) []Backend {
-	return am.backends[kind]
-}
-
-// Wallets returns all signer accounts registered under this account manager.
-func (am *Manager) Wallets() []Wallet {
-	am.lock.RLock()
-	defer am.lock.RUnlock()
-
-	cpy := make([]Wallet, len(am.wallets))
-	copy(cpy, am.wallets)
-	return cpy
-}
-
-// Wallet retrieves the wallet associated with a particular URL.
-func (am *Manager) Wallet(url string) (Wallet, error) {
-	am.lock.RLock()
-	defer am.lock.RUnlock()
-
-	parsed, err := parseURL(url)
+// NewManager new a account manager
+func NewManager(neblet Neblet) (*Manager, error) {
+	m := new(Manager)
+	m.ks = keystore.DefaultKS
+	m.signatureAlg = keystore.SECP256K1
+	m.encryptAlg = keystore.SCRYPT
+	tmpKeyDir, err := filepath.Abs(DefaultKeyDir)
 	if err != nil {
 		return nil, err
 	}
-	for _, wallet := range am.Wallets() {
-		if wallet.URL() == parsed {
-			return wallet, nil
+	m.keydir = tmpKeyDir
+
+	if neblet != nil {
+		conf := neblet.Config().Chain
+
+		keydir := conf.Keydir
+		if filepath.IsAbs(keydir) {
+			m.keydir = keydir
+		} else {
+			dir, err := filepath.Abs(keydir)
+			if err != nil {
+				return nil, err
+			}
+			m.keydir = dir
+		}
+
+		if len(conf.SignatureCiphers) > 0 {
+			if conf.SignatureCiphers[0] == EccSecp256K1 {
+				m.signatureAlg = keystore.Algorithm(EccSecp256K1Value)
+			}
 		}
 	}
-	return nil, ErrUnknownWallet
+	if err := m.refreshAccounts(); err != nil {
+		return nil, err
+	}
+
+	return m, nil
 }
 
-// Find attempts to locate the wallet corresponding to a specific account. Since
-// accounts can be dynamically added to and removed from wallets, this method has
-// a linear runtime in the number of wallets.
-func (am *Manager) Find(account Account) (Wallet, error) {
-	am.lock.RLock()
-	defer am.lock.RUnlock()
+// NewAccount returns a new address and keep it in keystore
+func (m *Manager) NewAccount(passphrase []byte) (*core.Address, error) {
+	priv, err := crypto.NewPrivateKey(m.signatureAlg, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	for _, wallet := range am.wallets {
-		if wallet.Contains(account) {
-			return wallet, nil
+	addr, err := m.setKeyStore(priv, passphrase)
+	if err != nil {
+		return nil, err
+	}
+
+	path, err := m.exportFile(addr, passphrase, false)
+	if err != nil {
+		return nil, err
+	}
+
+	m.updateAccount(addr, path)
+
+	return addr, nil
+}
+
+func (m *Manager) setKeyStore(priv keystore.PrivateKey, passphrase []byte) (*core.Address, error) {
+	pub, err := priv.PublicKey().Encoded()
+	if err != nil {
+		return nil, err
+	}
+	addr, err := core.NewAddressFromPublicKey(pub)
+	if err != nil {
+		return nil, err
+	}
+
+	// set key to keystore
+	err = m.ks.SetKey(addr.String(), priv, passphrase)
+	if err != nil {
+		return nil, err
+	}
+
+	return addr, nil
+}
+
+// Contains returns if contains address
+func (m *Manager) Contains(addr *core.Address) bool {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	for _, acc := range m.accounts {
+		if acc.addr.Equals(addr) {
+			return true
 		}
 	}
-	return nil, ErrUnknownAccount
+	return false
 }
 
-// Subscribe creates an async subscription to receive notifications when the
-// manager detects the arrival or departure of a wallet from any of its backends.
-func (am *Manager) Subscribe(sink chan<- WalletEvent) event.Subscription {
-	return am.feed.Subscribe(sink)
-}
-
-// merge is a sorted analogue of append for wallets, where the ordering of the
-// origin list is preserved by inserting new wallets at the correct position.
-//
-// The original slice is assumed to be already sorted by URL.
-func merge(slice []Wallet, wallets ...Wallet) []Wallet {
-	for _, wallet := range wallets {
-		n := sort.Search(len(slice), func(i int) bool { return slice[i].URL().Cmp(wallet.URL()) >= 0 })
-		if n == len(slice) {
-			slice = append(slice, wallet)
-			continue
+// Unlock unlock address with passphrase
+func (m *Manager) Unlock(addr *core.Address, passphrase []byte, duration time.Duration) error {
+	res, err := m.ks.ContainsAlias(addr.String())
+	if err != nil || res == false {
+		err = m.loadFile(addr, passphrase)
+		if err != nil {
+			return err
 		}
-		slice = append(slice[:n], append([]Wallet{wallet}, slice[n:]...)...)
 	}
-	return slice
+	return m.ks.Unlock(addr.String(), passphrase, duration)
 }
 
-// drop is the couterpart of merge, which looks up wallets from within the sorted
-// cache and removes the ones specified.
-func drop(slice []Wallet, wallets ...Wallet) []Wallet {
-	for _, wallet := range wallets {
-		n := sort.Search(len(slice), func(i int) bool { return slice[i].URL().Cmp(wallet.URL()) >= 0 })
-		if n == len(slice) {
-			// Wallet not found, may happen during startup
-			continue
-		}
-		slice = append(slice[:n], slice[n+1:]...)
+// Lock lock address
+func (m *Manager) Lock(addr *core.Address) error {
+	return m.ks.Lock(addr.String())
+}
+
+// Accounts returns slice of address
+func (m *Manager) Accounts() []*core.Address {
+	m.refreshAccounts()
+
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	addrs := make([]*core.Address, len(m.accounts))
+	for index, a := range m.accounts {
+		addrs[index] = a.addr
 	}
-	return slice
+	return addrs
+}
+
+// Update update addr locked passphrase
+func (m *Manager) Update(addr *core.Address, oldPassphrase, newPassphrase []byte) error {
+	key, err := m.ks.GetKey(addr.String(), oldPassphrase)
+	if err != nil {
+		err = m.loadFile(addr, oldPassphrase)
+		if err != nil {
+			return err
+		}
+		key, err = m.ks.GetKey(addr.String(), oldPassphrase)
+		if err != nil {
+			return err
+		}
+	}
+	defer key.Clear()
+
+	if _, err := m.setKeyStore(key.(keystore.PrivateKey), newPassphrase); err != nil {
+		return err
+	}
+	path, err := m.exportFile(addr, newPassphrase, true)
+	if err != nil {
+		return err
+	}
+
+	m.updateAccount(addr, path)
+
+	return nil
+}
+
+// Load load a key file to keystore, unable to write file
+func (m *Manager) Load(keyjson, passphrase []byte) (*core.Address, error) {
+	cipher := cipher.NewCipher(uint8(m.encryptAlg))
+	data, err := cipher.DecryptKey(keyjson, passphrase)
+	if err != nil {
+		return nil, err
+	}
+	defer utils.ZeroBytes(data)
+
+	priv, err := crypto.NewPrivateKey(m.signatureAlg, data)
+	if err != nil {
+		return nil, err
+	}
+	defer priv.Clear()
+
+	addr, err := m.setKeyStore(priv, passphrase)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := m.getAccount(addr); err != nil {
+		m.mutex.Lock()
+		acc := &account{addr: addr}
+		m.accounts = append(m.accounts, acc)
+		m.mutex.Unlock()
+	}
+	return addr, nil
+}
+
+// Import import a key file to keystore, compatible ethereum keystore file, write to file
+func (m *Manager) Import(keyjson, passphrase []byte) (*core.Address, error) {
+	addr, err := m.Load(keyjson, passphrase)
+	if err != nil {
+		return nil, err
+	}
+	path, err := m.exportFile(addr, passphrase, false)
+	if err != nil {
+		return nil, err
+	}
+
+	m.updateAccount(addr, path)
+
+	return addr, nil
+}
+
+// Export export address to key file
+func (m *Manager) Export(addr *core.Address, passphrase []byte) ([]byte, error) {
+	key, err := m.ks.GetKey(addr.String(), passphrase)
+	if err != nil {
+		return nil, err
+	}
+	defer key.Clear()
+
+	data, err := key.Encoded()
+	if err != nil {
+		return nil, err
+	}
+	defer utils.ZeroBytes(data)
+
+	cipher := cipher.NewCipher(uint8(m.encryptAlg))
+	if err != nil {
+		return nil, err
+	}
+	out, err := cipher.EncryptKey(addr.String(), data, passphrase)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Remove remove address and encrypted private key from keystore
+func (m *Manager) Remove(addr *core.Address, passphrase []byte) error {
+	err := m.ks.Delete(addr.String(), passphrase)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SignHash sign hash
+func (m *Manager) SignHash(addr *core.Address, hash byteutils.Hash, alg keystore.Algorithm) ([]byte, error) {
+	key, err := m.ks.GetUnlocked(addr.String())
+	if err != nil {
+		logging.VLog().WithFields(logrus.Fields{
+			"err":  err,
+			"addr": addr,
+			"hash": hash,
+		}).Error("Failed to get unlocked private key.")
+		return nil, ErrAccountIsLocked
+	}
+
+	signature, err := crypto.NewSignature(alg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := signature.InitSign(key.(keystore.PrivateKey)); err != nil {
+		return nil, err
+	}
+
+	signData, err := signature.Sign(hash)
+	if err != nil {
+		return nil, err
+	}
+	return signData, nil
+}
+
+// SignTransaction sign transaction with the specified algorithm
+func (m *Manager) SignTransaction(addr *core.Address, tx *core.Transaction) error {
+	// check sign addr is tx's from addr
+	if !tx.From().Equals(addr) {
+		return ErrInvalidSignerAddress
+	}
+	key, err := m.ks.GetUnlocked(addr.String())
+	if err != nil {
+		logging.VLog().WithFields(logrus.Fields{
+			"err": err,
+			"tx":  tx,
+		}).Error("Failed to get unlocked private key to sign transaction.")
+		return ErrAccountIsLocked
+	}
+
+	signature, err := crypto.NewSignature(m.signatureAlg)
+	if err != nil {
+		return err
+	}
+	signature.InitSign(key.(keystore.PrivateKey))
+	return tx.Sign(signature)
+}
+
+// SignBlock sign block with the specified algorithm
+func (m *Manager) SignBlock(addr *core.Address, block *core.Block) error {
+	key, err := m.ks.GetUnlocked(addr.String())
+	if err != nil {
+		logging.VLog().WithFields(logrus.Fields{
+			"err":   err,
+			"block": block,
+		}).Error("Failed to get unlocked private key to sign block.")
+		return ErrAccountIsLocked
+	}
+
+	signature, err := crypto.NewSignature(m.signatureAlg)
+	if err != nil {
+		return err
+	}
+	signature.InitSign(key.(keystore.PrivateKey))
+	return block.Sign(signature)
+}
+
+// GenerateRandomSeed generate rand
+func (m *Manager) GenerateRandomSeed(addr *core.Address, ancestorHash, parentSeed []byte) (vrfSeed, vrfProof []byte, err error) {
+
+	key, err := m.ks.GetUnlocked(addr.String())
+	if err != nil {
+		logging.VLog().WithFields(logrus.Fields{
+			"err":  err,
+			"addr": addr.String(),
+		}).Error("Failed to get unlocked private key to generate block rand.")
+		return nil, nil, ErrAccountIsLocked
+	}
+
+	_, err = crypto.NewSignature(m.signatureAlg)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	seckey, err := key.(keystore.PrivateKey).Encoded()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	signer, err := secp256k1VRF.NewVRFSignerFromRawKey(seckey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	data := hash.Sha3256(ancestorHash, parentSeed)
+
+	seed, proof := signer.Evaluate(data)
+	if proof == nil {
+		return nil, nil, secp256k1VRF.ErrEvaluateFailed
+	}
+	return seed[:], proof, nil
+}
+
+// SignTransactionWithPassphrase sign transaction with the from passphrase
+func (m *Manager) SignTransactionWithPassphrase(addr *core.Address, tx *core.Transaction, passphrase []byte) error {
+	// check sign addr is tx's from addr
+	if !tx.From().Equals(addr) {
+		return ErrInvalidSignerAddress
+	}
+	res, err := m.ks.ContainsAlias(addr.String())
+	if err != nil || res == false {
+		err = m.loadFile(addr, passphrase)
+		if err != nil {
+			return err
+		}
+	}
+
+	key, err := m.ks.GetKey(addr.String(), passphrase)
+	if err != nil {
+		logging.VLog().WithFields(logrus.Fields{
+			"err": err,
+			"tx":  tx,
+		}).Error("Failed to unlock private key to sign transaction")
+		return ErrAccountIsLocked
+	}
+	defer key.Clear()
+
+	signature, err := crypto.NewSignature(m.signatureAlg)
+	if err != nil {
+		return err
+	}
+	signature.InitSign(key.(keystore.PrivateKey))
+	return tx.Sign(signature)
 }
