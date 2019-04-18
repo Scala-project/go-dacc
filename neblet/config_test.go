@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/nebulasio/go-nebulas/core"
-	"github.com/nebulasio/go-nebulas/core/pb"
-	"github.com/nebulasio/go-nebulas/neblet/pb"
-	"github.com/nebulasio/go-nebulas/net"
-	"github.com/nebulasio/go-nebulas/rpc"
-	"github.com/nebulasio/go-nebulas/storage"
+	"github.com/daccproject/go-dacc/core"
+	"github.com/daccproject/go-dacc/core/pb"
+	"github.com/daccproject/go-dacc/neblet/pb"
+	"github.com/daccproject/go-dacc/net"
+	"github.com/daccproject/go-dacc/rpc"
+	"github.com/daccproject/go-dacc/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,7 +42,7 @@ func MockConfig() *nebletpb.Config {
 			LogLevel:          "debug",
 			LogFile:           "logs",
 			EnableCrashReport: false,
-			CrashReportUrl:    "https://crashreport.nebulas.io",
+			CrashReportUrl:    "https://crashreport.dacc.co",
 			Pprof:             &nebletpb.PprofConfig{HttpListen: "127.0.0.1:7777"},
 		},
 	}
