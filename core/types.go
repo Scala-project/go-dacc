@@ -40,9 +40,11 @@ import (
 
 // Payload Types
 const (
-	TxPayloadBinaryType = "binary"
-	TxPayloadDeployType = "deploy"
-	TxPayloadCallType   = "call"
+	TxPayloadBinaryType   = "binary"
+	TxPayloadDeployType   = "deploy"
+	TxPayloadCallType     = "call"
+	TxPayloadProtocolType = "protocol"
+	TxPayloadDipType      = "dip"
 )
 
 // Const.
@@ -70,6 +72,11 @@ const (
 
 	// TxExecutionPendding pendding status when transaction in transaction pool.
 	TxExecutionPendding = 2
+)
+
+const (
+	//InnerTransactionNonce inner tx nonce
+	InnerTransactionNonce = 0
 )
 
 // Error Types
@@ -171,6 +178,9 @@ var (
 	// nvm error
 	ErrExecutionFailed = errors.New("execution failed")
 	ErrUnexpected      = errors.New("Unexpected sys error")
+	// multi nvm error
+	ErrInnerExecutionFailed = errors.New("multi execution failed")
+	ErrCreateInnerTx        = errors.New("Failed to create inner transaction")
 
 	// access control
 	ErrUnsupportedKeyword    = errors.New("transaction data has unsupported keyword")
@@ -255,6 +265,7 @@ type AccountManager interface {
 
 	Update(*Address, []byte, []byte) error
 	Load([]byte, []byte) (*Address, error)
+	LoadPrivate([]byte, []byte) (*Address, error)
 	Import([]byte, []byte) (*Address, error)
 	Remove(*Address, []byte) error
 }
@@ -287,6 +298,9 @@ type Neblet interface {
 	IsActiveSyncing() bool
 	AccountManager() AccountManager
 	Nvm() NVM
+	Nbre() Nbre
+	Nr() NR
+	Dip() Dip
 	StartPprof(string) error
 }
 
@@ -307,7 +321,38 @@ type WorldState interface {
 
 	RecordGas(from string, gas *util.Uint128) error
 
-	Reset(addr byteutils.Hash) error
+	Reset(addr byteutils.Hash, isResetChangeLog bool) error
 	GetBlockHashByHeight(height uint64) ([]byte, error)
 	GetBlock(txHash byteutils.Hash) ([]byte, error)
+}
+
+type Data interface {
+	ToBytes() ([]byte, error)
+	FromBytes([]byte) error
+}
+
+// Nbre interface
+type Nbre interface {
+	Start() error
+	Execute(command string, args ...interface{}) (interface{}, error)
+	Stop()
+}
+
+type NR interface {
+	GetNRByAddress(addr *Address) (Data, error)
+	GetNRListByHeight(height uint64) (Data, error)
+	GetNRSummary(height uint64) (Data, error)
+	GetNRHandle(start, end, version uint64) (string, error)
+	GetNRListByHandle(hash []byte) (Data, error)
+}
+
+type Dip interface {
+	Start()
+	Stop()
+
+	RewardAddress() *Address
+	RewardValue() *util.Uint128
+
+	GetDipList(height, version uint64) (Data, error)
+	CheckReward(tx *Transaction) error
 }
