@@ -1,12 +1,12 @@
 # go-dacc
 
-Official Go implementation of the Nebulas protocol.
+Official Go implementation of the Dacc protocol.
 
 [![Build Status](https://travis-ci.org/daccproject/go-dacc.svg?branch=master)](https://travis-ci.org/daccproject/go-dacc)
 
-For the roadmap of Nebulas, please visit the [roadmap](https://github.com/daccproject/wiki/blob/master/roadmap.md) page.
+For the roadmap of Dacc, please visit the [roadmap](https://github.com/daccproject/wiki/blob/master/roadmap.md) page.
 
-For more information of Nebulas protocol, design documents, please refer to our [wiki](https://github.com/daccproject/wiki).
+For more information of Dacc protocol, design documents, please refer to our [wiki](https://github.com/daccproject/wiki).
 
 TestNet is released, please check [here](https://github.com/daccproject/wiki/blob/master/testnet.md) for more details.
 
@@ -91,7 +91,7 @@ git checkout testnet
 ## Run
 
 ### Run seed node
-Starting a Nebulas seed node is simple. After the build step above, run a command:
+Starting a Dacc seed node is simple. After the build step above, run a command:
 
 ```bash
 ./neb [-c /path/to/config.conf]
@@ -165,7 +165,7 @@ From the log, we can see the binary execution starts neblet, starts network serv
   #     - .:/go/src/github.com/daccproject/go-dacc
   #   environment:
   #     - TZ=Asia/Shanghai
-  #     - NEBULAS_BRANCH=master
+  #     - Dacc_BRANCH=master
   #   command: bash docker/scripts/neb.bash -c [your conf path]
 ```
 * start the node
@@ -176,31 +176,31 @@ From the log, we can see the binary execution starts neblet, starts network serv
 
 ## TestNet
 
-We are glad to release Nebulas Testnet here. 
+We are glad to release Dacc Testnet here. 
 You can use and join our [TestNet](https://github.com/daccproject/wiki/blob/master/testnet.md) right now.
 
 ## MaintNet
 
-We are glad to release Nebulas Mainnet here. 
+We are glad to release Dacc Mainnet here. 
 You can use and join our [MainNet](https://github.com/daccproject/wiki/blob/master/mainnet.md) right now.
 
 ## Explorer
 
-Nebulas provides a block explorer to view block/transaction information.
+Dacc provides a block explorer to view block/transaction information.
 Please check [Explorer](https://explorer.dacc.io/#/).
 
 ## Wallet
 
-Nebulas provides a web wallet to send transaction and deploy/call contract.
+Dacc provides a web wallet to send transaction and deploy/call contract.
 Please check [Web-Wallet](https://github.com/daccproject/web-wallet)
 
 ## Wiki
 
-Please check our [Wiki](https://github.com/daccproject/wiki) to learn more about Nebulas.
+Please check our [Wiki](https://github.com/daccproject/wiki) to learn more about Dacc.
 
 ## Contribution
 
-We are very glad that you are considering to help Nebulas Team or go-dacc project, including but not limited to source code, documents or others.
+We are very glad that you are considering to help Dacc Team or go-dacc project, including but not limited to source code, documents or others.
 
 If you'd like to contribute, please fork, fix, commit and send a pull request for the maintainers to review and merge into the main code base. If you wish to submit more complex changes though, please check up with the core devs first on our [slack channel](http://daccproject.herokuapp.com) to ensure those changes are in line with the general philosophy of the project and/or get some early feedback which can make both your efforts much lighter as well as our review and merge procedures quick and simple.
 
