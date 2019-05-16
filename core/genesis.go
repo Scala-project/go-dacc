@@ -90,6 +90,7 @@ func NewGenesisBlock(conf *corepb.Genesis, chain *BlockChain) (*Block, error) {
 		storage:      chain.storage,
 		eventEmitter: chain.eventEmitter,
 		nvm:          chain.nvm,
+		dip:          chain.dip,
 		height:       1,
 		sealed:       false,
 	}
@@ -133,8 +134,9 @@ func NewGenesisBlock(conf *corepb.Genesis, chain *BlockChain) (*Block, error) {
 
 	// genesis transaction
 	declaration := fmt.Sprintf(
-		"%s",
-		"hello world",
+		"%s\n\n%s",
+		"Dacc world",
+		"by Dacc (dacc.co)",
 	)
 	declarationTx, err := NewTransaction(
 		chain.ChainID(),
@@ -142,7 +144,7 @@ func NewGenesisBlock(conf *corepb.Genesis, chain *BlockChain) (*Block, error) {
 		util.Uint128Zero(), 1,
 		TxPayloadBinaryType,
 		[]byte(declaration),
-		TransactionGasPrice,
+		GenesisGasPrice,
 		MinGasCountPerTransaction,
 	)
 	if err != nil {

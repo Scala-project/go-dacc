@@ -49,6 +49,9 @@ const (
 
 	// TopicTransferFromContract transfer from contract
 	TopicTransferFromContract = "chain.transferFromContract"
+
+	// TopicInnerTransferContract inner transfer
+	TopicInnerContract = "chain.innerContract"
 )
 
 // EventSubscriber subscriber object
@@ -72,7 +75,7 @@ func (s *EventSubscriber) EventChan() chan *state.Event {
 	return s.eventCh
 }
 
-// EventEmitter provide event functionality for dacc.
+// EventEmitter provide event functionality for Nebulas.
 type EventEmitter struct {
 	eventSubs *sync.Map
 	eventCh   chan *state.Event
