@@ -70,6 +70,10 @@ type BlockChain struct {
 
 	nvm NVM
 
+	nr NR
+
+	dip Dip
+
 	quitCh chan int
 
 	superNode bool
@@ -151,6 +155,8 @@ func NewBlockChain(neb Neblet) (*BlockChain, error) {
 		storage:            neb.Storage(),
 		eventEmitter:       neb.EventEmitter(),
 		nvm:                neb.Nvm(),
+		nr:                 neb.Nr(),
+		dip:                neb.Dip(),
 		quitCh:             make(chan int, 1),
 		superNode:          neb.Config().Chain.SuperNode,
 		unsupportedKeyword: neb.Config().Chain.UnsupportedKeyword,
@@ -478,7 +484,7 @@ func (bc *BlockChain) GetBlockOnCanonicalChainByHash(blockHash byteutils.Hash) *
 
 // GetInputForVRFSigner returns [ getBlock(block.height - 2 * dynasty.size).hash, block.parent.seed ]
 func (bc *BlockChain) GetInputForVRFSigner(parentHash byteutils.Hash, height uint64) (ancestorHash, parentSeed []byte, err error) {
-	if parentHash == nil || height < RandomAvailableHeight {
+	if parentHash == nil || !RandomAvailableAtHeight(height) {
 		return nil, nil, ErrInvalidArgument
 	}
 
@@ -503,7 +509,7 @@ func (bc *BlockChain) GetInputForVRFSigner(parentHash byteutils.Hash, height uin
 		return nil, nil, ErrInvalidBlockHash
 	}
 
-	if parent.height >= RandomAvailableHeight {
+	if RandomAvailableAtHeight(parent.height) {
 		if !parent.HasRandomSeed() {
 			logging.VLog().WithFields(logrus.Fields{
 				"parent": parent,
@@ -674,6 +680,19 @@ func (bc *BlockChain) GetBlock(hash byteutils.Hash) *Block {
 	return block
 }
 
+// GetContract return contract of given address
+func (bc *BlockChain) GetContract(addr *Address) (state.Account, error) {
+	worldState, err := bc.TailBlock().WorldState().Clone()
+	if err != nil {
+		return nil, err
+	}
+	contract, err := CheckContract(addr, worldState)
+	if err != nil {
+		return nil, err
+	}
+	return contract, nil
+}
+
 // GetTransaction return transaction of given hash from local storage.
 func (bc *BlockChain) GetTransaction(hash byteutils.Hash) (*Transaction, error) {
 	worldState, err := bc.TailBlock().WorldState().Clone()
@@ -702,19 +721,6 @@ func (bc *BlockChain) GetTransactionHeight(hash byteutils.Hash) (uint64, error) 
 	return byteutils.Uint64(bytes), nil
 }
 
-// GetContract return contract of given address
-func (bc *BlockChain) GetContract(addr *Address) (state.Account, error) {
-	worldState, err := bc.TailBlock().WorldState().Clone()
-	if err != nil {
-		return nil, err
-	}
-	contract, err := CheckContract(addr, worldState)
-	if err != nil {
-		return nil, err
-	}
-	return contract, nil
-}
-
 // GasPrice returns the lowest transaction gas price.
 func (bc *BlockChain) GasPrice() *util.Uint128 {
 	gasPrice := TransactionMaxGasPrice
@@ -740,7 +746,7 @@ func (bc *BlockChain) GasPrice() *util.Uint128 {
 		}
 	} else {
 		// if no transactions have been submitted, use the default gasPrice
-		gasPrice = TransactionGasPrice
+		gasPrice = bc.txPool.GetMinGasPrice()
 	}
 
 	return gasPrice
