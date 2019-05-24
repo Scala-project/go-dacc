@@ -1,29 +1,51 @@
 #! /usr/bin/env bash
 
 declare NEBULAS_SRC=${GOPATH}/src/github.com/daccproject/go-dacc
-declare NEBULAS_BRANCH=master
 
-# git clone https://github.com/daccproject/go-dacc ${NEBULAS_SRC}
-echo NEBULAS_BRANCH=${NEBULAS_BRANCH}
-cd ${NEBULAS_SRC} && \
-    git checkout ${NEBULAS_BRANCH}
+OS="$(uname -s)"
+case $OS in
+'Linux')
+  DYLIB="so"
+  ;;
+'Darwin')
+  DYLIB="dylib"
+  ;;
+*) ;;
+esac
 
-if [[ -d ${NEBULAS_SRC}/vendor ]]; then
-    echo './vendor exists.'
+if [ "$REGION" = "China" ]; then
+  SOURCE_URL="http://develop-center.oss-cn-zhangjiakou.aliyuncs.com"
 else
-    echo './vendor not found. Createing ./vendor...'
-    if [[ -f ${NEBULAS_SRC}/nodep ]]; then
-        echo './nodep exists. Downloading vendor...'
-        wget http://develop-center.oss-cn-zhangjiakou.aliyuncs.com/setup/vendor.tar.gz
-        tar -vxzf vendor.tar.gz
-    else
-        echo './nodep not found. Run dep...'
-        make dep
-    fi
+  SOURCE_URL="https://s3-us-west-1.amazonaws.com/develop-center"
 fi
 
-make deploy-v8
+echo "REGION is:$REGION"
+echo "source url is:$SOURCE_URL"
+echo "config file path:$config"
+
+setup_with_vendor() {
+    echo "check vendor..."
+    if [[ -d ${NEBULAS_SRC}/vendor ]]; then
+        echo './vendor exists.'
+    else
+        echo './vendor not found. Createing ./vendor...'
+        if [[ "$REGION" = "China" ]]; then
+            echo "downloading vendor from remote..."
+            wget $SOURCE_URL/setup/vendor/vendor.tar.gz
+            tar -vxzf vendor.tar.gz
+        else
+            echo 'Run dep...'
+            go get -u github.com/golang/dep/cmd/dep
+            make dep
+        fi
+    fi
+}
+
+setup_with_vendor
+source $NEBULAS_SRC/install-native-libs.sh
+
 make clean && make build
 
-echo 'Run ./neb '$@
-./neb $@
+command="./neb -c $config"
+echo "Run $command"
+eval $command
